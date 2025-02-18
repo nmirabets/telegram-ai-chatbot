@@ -4,7 +4,8 @@ from dotenv import load_dotenv  # This helps us keep secrets safe!
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from agent.agent import agent
-
+from agent.prompts import get_system_prompt
+from telegram.constants import ParseMode  # Add this import
 # 🔐 Load our secret settings
 load_dotenv()
 
@@ -22,7 +23,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Initialize the conversation history
     if 'messages' not in context.user_data:
-        context.user_data['messages'] = []
+        context.user_data['messages'] = [
+            {"role": "system", "content": get_system_prompt(update.message.text)}
+        ]
+
+    # Update the system prompt
+    context.user_data['messages'][0]['content'] = get_system_prompt(update.message.text)
 
     # Add the user's message to the conversation history
     context.user_data['messages'].append(
@@ -38,7 +44,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     # Send the response to the user
-    await update.message.reply_text(response)
+    await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
 
 # 🚨 This function handles any errors that might happen
 async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):

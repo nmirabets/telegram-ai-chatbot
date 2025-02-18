@@ -3,6 +3,7 @@ import uuid
 from dotenv import load_dotenv
 from pinecone import Pinecone
 from openai import OpenAI
+from tavily import TavilyClient
 from datetime import datetime, timezone
 
 
@@ -31,6 +32,21 @@ TOOLS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "web_search",
+            "description": "Search the web for information",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string"}
+                },
+                "required": ["query"]
+            },
+        },
+    },
+
 ]
 
 # Function to get the embeddings of a string
@@ -91,3 +107,20 @@ def load_memories(prompt):
         memories = [m["metadata"]["payload"] for m in matches]
         memories
     return memories
+
+def search_web(query):
+    # Initialize Tavily
+    tavily = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
+    return "\n".join(result["content"] for result in tavily.search(query, search_depth="basic")["results"])
+
+def invoke_model(messages):
+    # Initialize the OpenAI client
+    client = OpenAI()
+
+    # Make a ChatGPT API call with tool calling
+    completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=messages
+    )
+
+    return completion.choices[0].message.content
