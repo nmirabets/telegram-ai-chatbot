@@ -1,4 +1,3 @@
-from agent.sakila_schema import SAKILA_SCHEMA
 from agent.tools import load_memories
 
 def get_system_prompt(user_prompt):
