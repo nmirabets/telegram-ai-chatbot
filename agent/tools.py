@@ -111,7 +111,7 @@ def load_memories(prompt):
 def search_web(query):
     # Initialize Tavily
     tavily = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
-    return "\n".join(result["content"] for result in tavily.search(query, search_depth="basic")["results"])
+    return "\n".join(f"{{Content: {result['content']} \n Source: {result['url']}}}" for result in tavily.search(query, search_depth="basic")["results"])
 
 def invoke_model(messages):
     # Initialize the OpenAI client
