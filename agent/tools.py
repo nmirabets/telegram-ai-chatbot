@@ -1,12 +1,12 @@
 import os
 import uuid
-from dotenv import load_dotenv
-from agent.notion_functions import add_markdown_to_notion
+from datetime import datetime, timezone
 from pinecone import Pinecone
 from openai import OpenAI
 from tavily import TavilyClient
 from notion_client import Client
-from datetime import datetime, timezone
+from dotenv import load_dotenv
+from notion_functions import add_markdown_to_notion
 
 
 load_dotenv()
