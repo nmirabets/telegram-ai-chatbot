@@ -3,9 +3,7 @@ import os
 from dotenv import load_dotenv  # This helps us keep secrets safe!
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
-from agent.agent import agent
-from agent.prompts import get_system_prompt
-from telegram.constants import ParseMode  # Add this import
+
 # 🔐 Load our secret settings
 load_dotenv()
 
@@ -20,35 +18,9 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # 💬 This function handles any messages people send
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Responds to user messages with a friendly message"""
+    print("User", update.message.from_user.first_name, "said:", update.message.text)
 
-    # Initialize the conversation history
-    if 'messages' not in context.user_data:
-        context.user_data['messages'] = [
-            {"role": "system", "content": get_system_prompt(update.message.text)}
-        ]
-
-    # Update the system prompt
-    context.user_data['messages'][0]['content'] = get_system_prompt(update.message.text)
-
-    # Add the user's message to the conversation history
-    context.user_data['messages'].append(
-        {"role": "user", "content": update.message.text}
-    )
-
-    print("User message:", update.message.text)
-
-    # Get the response from the agent
-    response = agent(context.user_data['messages'])
-
-    print("Assistant response:", response)
-
-    # Add the bot's response to the conversation history
-    context.user_data['messages'].append(
-        {"role": "assistant", "content": response}
-    )
-
-    # Send the response to the user
-    await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
+    await update.message.reply_text("I got your message! 📫 Right now I'm just learning to talk, but soon I'll be much smarter! ✨")
 
 # 🚨 This function handles any errors that might happen
 async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -71,6 +43,5 @@ def main():
     print('🚀 Starting bot...')
     app.run_polling(poll_interval=1)
 
-# 🎯 This is where our program starts
 if __name__ == '__main__':
     main()

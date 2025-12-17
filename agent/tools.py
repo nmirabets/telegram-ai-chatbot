@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from pinecone import Pinecone
 from openai import OpenAI
 from tavily import TavilyClient
+from notion_client import Client
 from datetime import datetime, timezone
 
 
@@ -46,14 +47,29 @@ TOOLS = [
             },
         },
     },
-
+    {
+        "type": "function",
+        "function": {
+            "name": "create_notion_page",
+            "description": "Create a new page in Notion",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "page_title": {"type": "string"},
+                    "markdown_content": {"type": "string"}
+                },
+                "required": ["page_title", "markdown_content"]
+            },
+        },
+    },
 ]
 
 # Function to get the embeddings of a string
 def get_embeddings(string_to_embed):
     response = client.embeddings.create(
         input=string_to_embed,
-        model="text-embedding-ada-002"
+        model=os.getenv("EMBEDDING_MODEL"),
+        dimensions=int(os.getenv("EMBEDDING_DIMENSIONS"))
     )
     return response.data[0].embedding
 
@@ -62,22 +78,15 @@ def save_memory(memory):
     vector = get_embeddings(memory)
     # Step 2: Build the vector document to be stored
     user_id = "1234"
-    path = "user/{user_id}/recall/{event_id}"
     current_time = datetime.now(tz=timezone.utc)
-    path = path.format(
-        user_id=user_id,
-        event_id=str(uuid.uuid4()),
-    )
     documents = [
         {
             "id": str(uuid.uuid4()),
             "values": vector,
             "metadata": {
-                "payload": memory,
-                "path": path,
-                "timestamp": str(current_time),
-                "type": "recall", # Define the type of document i.e recall memory
                 "user_id": user_id,
+                "timestamp": str(current_time),
+                "payload": memory,
             },
         }
     ]
@@ -96,7 +105,6 @@ def load_memories(prompt):
         vector=vector,
         filter={
             "user_id": {"$eq": user_id},
-            "type": {"$eq": "recall"},
         },
         namespace=os.getenv("PINECONE_NAMESPACE"),
         include_metadata=True,
@@ -105,7 +113,6 @@ def load_memories(prompt):
     memories = []
     if matches := response.get("matches"):
         memories = [m["metadata"]["payload"] for m in matches]
-        memories
     return memories
 
 def search_web(query):
@@ -124,3 +131,4 @@ def invoke_model(messages):
     )
 
     return completion.choices[0].message.content
+
