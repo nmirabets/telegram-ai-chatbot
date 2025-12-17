@@ -165,15 +165,3 @@ def add_markdown_to_notion(page_id, md_text):
         block_id=page_id,
         children=blocks
     )
-
-def create_notion_page(page_title, markdown_content):
-
-    # Create a new page
-    page = notion.pages.create(
-        parent={"database_id": NOTION_DATABASE_ID},
-        properties={"title": {"title": [{"text": {"content": page_title}}]}}
-    )
-    print(page)
-    # Add the markdown text to the page
-    add_markdown_to_notion(page["id"], markdown_content)
-    return "Page created successfully"

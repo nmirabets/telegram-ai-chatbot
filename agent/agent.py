@@ -1,8 +1,7 @@
 import json
 from dotenv import load_dotenv
-from agent.notion_functions import create_notion_page
 from openai import OpenAI
-from agent.tools import TOOLS, save_memory, search_web, invoke_model
+from agent.tools import TOOLS, save_memory, search_web, invoke_model, create_notion_page
 
 
 load_dotenv()

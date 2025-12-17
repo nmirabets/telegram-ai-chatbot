@@ -1,6 +1,7 @@
 import os
 import uuid
 from dotenv import load_dotenv
+from agent.notion_functions import add_markdown_to_notion
 from pinecone import Pinecone
 from openai import OpenAI
 from tavily import TavilyClient
@@ -131,4 +132,20 @@ def invoke_model(messages):
     )
 
     return completion.choices[0].message.content
+
+def create_notion_page(page_title, markdown_content):
+
+    # Initialize Notion client
+    notion = Client(auth=os.getenv("NOTION_API_KEY"))
+    NOTION_DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
+
+    # Create a new page
+    page = notion.pages.create(
+        parent={"database_id": NOTION_DATABASE_ID},
+        properties={"title": {"title": [{"text": {"content": page_title}}]}}
+    )
+    print(page)
+    # Add the markdown text to the page
+    add_markdown_to_notion(page["id"], markdown_content)
+    return "Page created successfully"
 
